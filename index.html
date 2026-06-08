@@ -51,8 +51,13 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; j
 .hero-name { font-family: 'Syne', sans-serif; font-size: clamp(3rem, 8vw, 7rem); font-weight: 800; line-height: 1; letter-spacing: -0.02em; animation: fadeUp 0.8s 0.1s ease both; }
 .hero-name .first { color: var(--text); }
 .hero-name .last { color: var(--text); -webkit-text-stroke: 1px rgba(59,130,246,0.6); }
-.hero-title { font-size: clamp(1rem, 2vw, 1.3rem); color: var(--muted); font-weight: 300; margin-top: 1rem; letter-spacing: 0.05em; animation: fadeUp 0.8s 0.2s ease both; }
-.hero-title strong { color: var(--blue2); font-weight: 500; }
+.hero-title { font-size: clamp(1rem, 2vw, 1.3rem); color: var(--muted); font-weight: 300; margin-top: 1rem; letter-spacing: 0.05em; animation: fadeUp 0.8s 0.2s ease both; display: flex; align-items: center; justify-content: center; gap: 0.5em; flex-wrap: wrap; }
+.hero-title-static { color: var(--blue2); font-weight: 500; white-space: nowrap; }
+.hero-title-sep { color: var(--muted); font-weight: 300; }
+.hero-title-typed-wrap { display: inline-flex; align-items: center; min-width: 220px; }
+.hero-title-typed { color: var(--text); font-weight: 600; white-space: nowrap; }
+.hero-title-cursor { display: inline-block; width: 2px; height: 1.1em; background: var(--blue); margin-left: 3px; vertical-align: middle; animation: blink 0.8s step-end infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 .hero-desc { max-width: 600px; margin: 1.5rem auto 0; font-size: 1rem; color: var(--muted); line-height: 1.8; animation: fadeUp 0.8s 0.3s ease both; }
 .hero-tags { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; margin-top: 2rem; animation: fadeUp 0.8s 0.4s ease both; }
 .hero-tag { padding: 0.35rem 0.9rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; font-size: 0.78rem; color: var(--muted); font-weight: 500; letter-spacing: 0.05em; transition: all 0.2s; }
@@ -214,7 +219,7 @@ footer { position: relative; z-index: 2; padding: 2rem; border-top: 1px solid va
     <li><a href="#education">Education</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
-  <a href="https://drive.google.com/file/d/1pjiShy-xkRG23-t1jX6fG23koS0mNdcp/view?usp=sharing" class="nav-cta" target="_blank">Resume ↗</a>
+  <a href="https://drive.google.com/file/d/12nE0OLWgIw1luvgVlZPkin37HO_w0RAj/view?usp=drivesdk" class="nav-cta" target="_blank">Resume ↗</a>
   <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
 </nav>
 
@@ -226,7 +231,11 @@ footer { position: relative; z-index: 2; padding: 2rem; border-top: 1px solid va
       <span class="first">Suryam </span><span class="last">Kandapu</span>
     </h1>
     <p class="hero-title">
-      <strong>AI/ML Engineer</strong> &amp; <strong>Full-Stack Developer</strong>
+      <span class="hero-title-static">AI/ML Engineer</span>
+      <span class="hero-title-sep">&amp;</span>
+      <span class="hero-title-typed-wrap">
+        <span class="hero-title-typed" id="typedText"></span><span class="hero-title-cursor"></span>
+      </span>
     </p>
     <p class="hero-desc">
       Building intelligent systems at the intersection of deep learning and modern web. CS undergrad at CMR Institute of Technology, Hyderabad.
@@ -610,7 +619,7 @@ footer { position: relative; z-index: 2; padding: 2rem; border-top: 1px solid va
         <div class="section-label">Contact</div>
         <div class="contact-cta">Let's build something <span>intelligent</span> together.</div>
         <p class="contact-sub">Open to internships, full-time roles, and collaborations in AI/ML and full-stack development.</p>
-        <a href="https://drive.google.com/file/d/1pjiShy-xkRG23-t1jX6fG23koS0mNdcp/view?usp=sharing" class="btn-primary" target="_blank" style="display:inline-block;">Download Resume ↗</a>
+        <a href="https://drive.google.com/file/d/12nE0OLWgIw1luvgVlZPkin37HO_w0RAj/view?usp=drivesdk" class="btn-primary" target="_blank" style="display:inline-block;">Download Resume ↗</a>
       </div>
       <div>
         <div class="contact-links">
@@ -682,15 +691,24 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.1 });
 revealEls.forEach(el => observer.observe(el));
-const titles = ['AI/ML Engineer', 'Full-Stack Developer', 'Deep Learning Builder', 'GenAI Developer'];
-let ti = 0, ci = 0, del = false;
-const titleEl = document.querySelector('.hero-title strong');
-if (titleEl) {
-  setInterval(() => {
-    const t = titles[ti];
-    if (!del) { titleEl.textContent = t.slice(0, ++ci); if (ci === t.length) { del = true; } }
-    else { titleEl.textContent = t.slice(0, --ci); if (ci === 0) { del = false; ti = (ti + 1) % titles.length; } }
-  }, 80);
+const typedWords = ['Full-Stack Dev', 'Deep Learning', 'GenAI Builder', 'RAG Engineer', 'MERN Dev'];
+let twi = 0, twc = 0, twDel = false, twPause = false;
+const typedEl = document.getElementById('typedText');
+if (typedEl) {
+  function typeStep() {
+    const word = typedWords[twi];
+    if (twPause) { twPause = false; twDel = true; setTimeout(typeStep, 1400); return; }
+    if (!twDel) {
+      typedEl.textContent = word.slice(0, ++twc);
+      if (twc === word.length) { twPause = true; setTimeout(typeStep, 80); return; }
+      setTimeout(typeStep, 90);
+    } else {
+      typedEl.textContent = word.slice(0, --twc);
+      if (twc === 0) { twDel = false; twi = (twi + 1) % typedWords.length; setTimeout(typeStep, 300); return; }
+      setTimeout(typeStep, 50);
+    }
+  }
+  setTimeout(typeStep, 800);
 }
 document.querySelectorAll('.stat-num').forEach(el => {
   const raw = el.textContent;
